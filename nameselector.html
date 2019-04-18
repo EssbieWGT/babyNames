@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Random Boy Names</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.1.4/semantic.min.css">
+        <!-- <link rel="stylesheet" type="text/css" href="/stylesheets/main.css"> -->
+        <script
+          src="https://code.jquery.com/jquery-3.1.1.min.js"
+          integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+          crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.10.0/d3.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.js"></script>
+
+    </head>
+    <style>
+
+    .ui.sortable.celled.table{
+      width: 25%;
+      border: 0px;
+      padding-left: 10px;
+      padding-right: 10px;
+      margin: 0em;
+    }
+
+    </style>
+    <body>
+
+        <div class="ui menu" id="navbar">
+          <a class="item" href="/"><h3 id="site_title">Random Boy Name Generator</h3></a>
+        </div>
+
+<div class="ui container">
+<h3>Instructions:</h3>
+
+<div> <p>The following widget will draw 25 names at random from 103,989 names found in the U.S. Social Security Administration's database of all names registered in the United States from 1880 to 2016.
+  For our purposes, we're looking only at 39,220 names where the number of males registered with that name are greater than or equal to the number of females registered with that name. The names will be displayed by
+  name, followed by the aggregate number of males registered with that name, the aggregate number of females registered with that name, and the year that the most people were registered with that name.</p>
+  <p> To get a fresh batch of 25 names, click the "Refresh" button below. To filter by specific letters, select the desired letters and press refresh.</p>
+
+  <p><input id="newNames" type="button" class="ui toggle button" value="Refresh"></p>
+
+  <div class="ui two column grid container">
+    <div class="row" id="dataWindow">
+      <table class="button table">
+          <tr>
+              <td colspan="2" ><p><input id="ALL" type="button" class="ui toggle button active" style="width:100%" state = 1 value="All Names"></p></td>
+          </tr>
+          <tr>
+              <td><p class="ui vertical buttons" style="width:100%"><input id = "AtoM" type="button" class="ui toggle button" state = 0 value="A to M"></p></td>
+              <td><p class="ui vertical buttons" style="width:100%"><input id = "NtoZ" type="button" class="ui toggle button" state = 0 value="N to Z"></p></td>
+          </tr>
+          <tr>
+              <td><p id="am" class="ui vertical buttons" type="button" style="width:100%"></p></td>
+              <td><p id="nz" class="ui vertical buttons" type="button" style="width:100%"></p></td>
+          </tr>
+      </table>
+      <p id="table-location">
+      </p>
+    </div>
+</div>
+</div>
+<script>
+
+var alphabet = 'abcdefghijklmnopqrstuvwxyz'.toUpperCase().split('');
+var active  = alphabet
+
+//function to generate random sample of 25 names
+function getRandomSubarray(arr, size) {
+    var shuffled = arr.slice(0), i = arr.length, temp, index;
+    while (i--) {
+        index = Math.floor((i + 1) * Math.random());
+        temp = shuffled[index];
+        shuffled[index] = shuffled[i];
+        shuffled[i] = temp;
+    }
+    return shuffled.slice(0, size);
+}
+
+// function to more easily clean up arrays
+Array.prototype.remByVal = function(val) {
+    for (var i = 0; i < this.length; i++) {
+        if (this[i] === val) {
+            this.splice(i, 1);
+            i--;
+        }
+    }
+    return this;
+}
+
+//Load the data
+d3.csv("boynames.csv",function(allNames){
+    allNames.forEach(function(d){
+      d["Name"] = d.name
+      d["Total"] = (+d.M)+(+d.F)
+      d["Peak Year"] = d.year
+      d["first"] = d.name.charAt(0)
+    })
+
+    var columns = ['Name','Total','Peak Year']
+
+    var nameSample = getRandomSubarray(allNames,25)
+
+    nameSample.forEach(function(d){
+      d.Name = "<a href='https://www.babble.com/baby-names/baby-boy-names/meaning-of-"+d.Name+"/' target='_blank'>"+d.Name+"</a>"
+    })
+
+//Update table on click.
+    d3.select("#newNames").on("click", function(){
+
+//checking what's in 'active' and adjusting so it's meaningful to filter
+checkActive()
+
+// took you awhile to get this, but after some fidgiting, figured out how to
+// quickly/easily filter allNames by multiple variables at once!
+
+  var filtered = allNames.filter((f) => active.includes(f.first))
+  var filterSample = getRandomSubarray(filtered,25)
+
+  filterSample.forEach(function(d){
+    d.Name = "<a href='https://www.babble.com/baby-names/baby-boy-names/meaning-of-"+d.Name+"/' target='_blank'>"+d.Name+"</a>"
+  })
+
+      thead.append('tr')
+        .remove()
+        .exit()
+    	  .selectAll('th')
+        .remove()
+        .exit()
+    	    .data(columns)
+    	    .enter()
+    	  .append('th')
+    	    .text(function (d) { return d })
+          .on('click', sortingCols)
+
+      var rows = tbody.selectAll('tr')
+          .remove()
+          .exit()
+          .data(filterSample)
+          .enter()
+          .append('tr')
+
+      var cells = rows.selectAll('td')
+          .remove()
+          .exit()
+          .data(function(row) {
+          	return columns.map(function (column) {
+          		return { column: column, value: row[column] }
+            })
+          })
+          .enter()
+        .append('td')
+          .html(function (d) { return d.value})
+
+// End update section.
+    });
+
+    var sortAscending = true;
+    var nameTable = d3.select("#table-location")
+				.attr("class","ui sortable celled table")
+				.attr("width","25%")
+				.attr("align","left");
+	  var thead = nameTable.append('thead')
+	  var tbody = nameTable.append('tbody')
+
+  thead.append('tr')
+	  .selectAll('th')
+      .remove()
+      .exit()
+	    .data(columns)
+	    .enter()
+	  .append('th')
+	    .text(function (d) { return d })
+      .on('click', sortingCols)
+
+   var rows = tbody.selectAll('tr')
+       .data(nameSample)
+       .enter()
+       .append('tr')
+
+   var cells = rows.selectAll('td')
+       .data(function(row) {
+       	return columns.map(function (column) {
+       		return { column: column, value: row[column] }
+         })
+       })
+       .enter()
+     .append('td')
+       .html(function (d) { return d.value})
+
+//function to define sorting
+function sortingCols(d){
+    thead.attr('class', 'thead')
+    if (sortAscending) {
+        rows.sort(function(a, b) {return d3.ascending(b[d], a[d]);  });
+        sortAscending = false;
+        this.className = 'aes';
+        }
+    else {
+        rows.sort(function(a, b) { return d3.descending(b[d], a[d]); });
+        sortAscending = true;
+        this.className = 'des';
+        }
+     };
+
+//switch to check/adjust for what's active.
+var checkActive = function(){
+  switch(true){
+    case active.includes("All Names"):
+      active = alphabet
+      break
+    case active.includes("A to M"):
+      active = alphabet.slice(0,13)
+      break
+    case active.includes("N to Z"):
+      active = alphabet.slice(14,26)
+      break
+    default:
+      active = active
+  }
+}
+
+//this is the end of the load data function, FYI
+});
+
+//Define function to modify the buttons
+var statechange = function(){
+    all     = d3.select("#ALL");
+    a_m      = d3.select("#AtoM");
+    n_z      = d3.select("#NtoZ");
+    clicked = d3.select(this);
+    state   = +clicked.attr("state");
+    b1      = d3.select("#am").selectAll("input");
+    b2      = d3.select("#nz").selectAll("input");
+    pathtry = d3.selectAll("path")
+
+switch (true) {
+    case d3.select(this).node() === all.node() || d3.select(this).node() === a_m.node() || d3.select(this).node() === n_z.node() :
+        b1.attr("state", 0)
+        b1.attr("class", "ui toggle button")
+        b2.attr("state", 0)
+        b2.attr("class", "ui toggle button")
+        pathtry.attr("d", null)
+        state = 1
+        clicked.attr("class", "ui toggle button active")
+        active = []
+        active.push(clicked._groups[0][0].value)
+    case state === 0 && +all.attr("state") === 1 || state === 0 && +a_m.attr("state") === 1 || state === 0 && +n_z.attr("state") === 1:
+        all.attr("state", 0);
+        a_m.attr("state", 0);
+        n_z.attr("state", 0);
+        all.attr("class", "ui toggle button");
+        a_m.attr("class", "ui toggle button");
+        n_z.attr("class", "ui toggle button");
+        state = 1
+        clicked.attr("class", "ui toggle button active");
+        active = []
+        active.push(clicked._groups[0][0].value)
+        break;
+    case state === 0 && +all.attr("state") === 0 && +a_m.attr("state") === 0 && +n_z.attr("state") === 0:
+        state = 1
+        clicked.attr("class", "ui toggle button active");
+        active.push(clicked._groups[0][0].value)
+        break;
+    case state === 1 && +all.attr("state") === 0 && +a_m.attr("state") === 0 && +n_z.attr("state") === 0:
+        state = 0
+        clicked.attr("class", "ui toggle button");
+        active.remByVal(clicked._groups[0][0].value)
+        break;
+    default:
+        state = 0
+        clicked.attr("class", "ui toggle button");
+}
+    clicked.attr("state",state);
+};
+
+// Defining the buttons
+var All = d3.select("#ALL")
+    .on("click", statechange);
+
+var A_M = d3.select("#AtoM")
+    .on("click", statechange);
+
+var N_Z = d3.select("#NtoZ")
+    .on("click", statechange);
+
+var athrum = d3.select("#am")
+    .selectAll("p")
+    .data(alphabet.slice(0,13))
+    .enter()
+    .append("input")
+    .attr("type","button")
+    .attr("class","ui toggle button")
+    .attr("state", 0)
+    .attr("value", function (d) {
+        {return d}
+        })
+    .on("click", statechange);
+
+var mthruz = d3.select("#nz")
+    .selectAll("p")
+    .data(alphabet.slice(13,26))
+    .enter()
+    .append("input")
+    .attr("type","button")
+    .attr("class","ui toggle button")
+    .attr("state", 0)
+    .attr("value", function (d) {
+      {return d}
+        })
+    .on("click", statechange);
+
+</script>
+</body>
+</html>

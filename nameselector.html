@@ -4,7 +4,6 @@
         <title>Random Boy Names</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.1.4/semantic.min.css">
-        <!-- <link rel="stylesheet" type="text/css" href="/stylesheets/main.css"> -->
         <script
           src="https://code.jquery.com/jquery-3.1.1.min.js"
           integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
@@ -158,7 +157,7 @@ checkActive()
 
     var sortAscending = true;
     var nameTable = d3.select("#table-location")
-				.attr("class","ui sortable celled table")
+				.attr("class","ui sortable celled table unstackable")
 				.attr("width","25%")
 				.attr("align","left");
 	  var thead = nameTable.append('thead')

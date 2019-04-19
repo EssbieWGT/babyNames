@@ -4,6 +4,7 @@
         <title>Random Boy Names</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.1.4/semantic.min.css">
+        <!-- <link rel="stylesheet" type="text/css" href="/stylesheets/main.css"> -->
         <script
           src="https://code.jquery.com/jquery-3.1.1.min.js"
           integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
@@ -15,12 +16,16 @@
     </head>
     <style>
 
-    .ui.sortable.celled.table{
+    .ui.celled.table{
       width: 25%;
       border: 0px;
       padding-left: 10px;
       padding-right: 10px;
       margin: 0em;
+    }
+
+    .ui.two.column.grid.container{
+      padding-top: 10px;
     }
 
     </style>
@@ -35,10 +40,19 @@
 
 <div> <p>The following widget will draw 25 names at random from 103,989 names found in the U.S. Social Security Administration's database of all names registered in the United States from 1880 to 2016.
   For our purposes, we're looking only at 39,220 names where the number of males registered with that name are greater than or equal to the number of females registered with that name. The names will be displayed by
-  name, followed by the aggregate number of males registered with that name and the year that the most people were registered with that name.</p>
+  name, followed by the aggregate number of males registered with that name, the aggregate number of females registered with that name, and the year that the most people were registered with that name.</p>
   <p> To get a fresh batch of 25 names, click the "Refresh" button below. To filter by specific letters, select the desired letters and press refresh.</p>
 
   <p><input id="newNames" type="button" class="ui toggle button" value="Refresh"></p>
+
+<table class="button table">
+  <tr>
+    <td><p><input type="button" class="ui toggle button" id="maleCheck" value="Male:" state=0></input></p></td>
+    <td><p><input type="button" class="ui toggle button" id="femaleCheck" value="Female:" state=0></input></td>
+    <td><p><input type="button" class="ui toggle button active" id="bothCheck" value="Both:" state=1></input></td>
+  </tr>
+</table>
+
 
   <div class="ui two column grid container">
     <div class="row" id="dataWindow">
@@ -88,16 +102,19 @@ Array.prototype.remByVal = function(val) {
     return this;
 }
 
+var columns = ['Name','Male','Female','Peak Year']
+var sex = ["Both"]
+
 //Load the data
-d3.csv("boynames.csv",function(allNames){
+d3.csv("allnames.csv",function(allNames){
     allNames.forEach(function(d){
       d["Name"] = d.name
-      d["Total"] = (+d.M)+(+d.F)
+      // d["Total"] = (+d.M)+(+d.F)
+      d["Male"] = +d.M
+      d["Female"] = +d.F
       d["Peak Year"] = d.year
       d["first"] = d.name.charAt(0)
     })
-
-    var columns = ['Name','Total','Peak Year']
 
     var nameSample = getRandomSubarray(allNames,25)
 
@@ -114,10 +131,11 @@ checkActive()
 // took you awhile to get this, but after some fidgiting, figured out how to
 // quickly/easily filter allNames by multiple variables at once!
 
-  var filtered = allNames.filter((f) => active.includes(f.first))
-  var filterSample = getRandomSubarray(filtered,25)
+  var filter = allNames.filter((f) => active.includes(f.first))
+  var filtered = filter.filter((f) => !sex.includes(f.greatermale))
+  var nameSample = getRandomSubarray(filtered,25)
 
-  filterSample.forEach(function(d){
+  nameSample.forEach(function(d){
     d.Name = "<a href='https://www.babble.com/baby-names/baby-boy-names/meaning-of-"+d.Name+"/' target='_blank'>"+d.Name+"</a>"
   })
 
@@ -139,9 +157,10 @@ checkActive()
       var rows = tbody.selectAll('tr')
           .remove()
           .exit()
-          .data(filterSample)
+          .data(nameSample)
           .enter()
           .append('tr')
+
 
       var cells = rows.selectAll('td')
           .remove()
@@ -156,32 +175,37 @@ checkActive()
           .html(function (d) { return d.value})
 
 // End update section.
-    });
+});
 
     var sortAscending = true;
     var nameTable = d3.select("#table-location")
-				.attr("class","ui sortable celled table unstackable")
-				.attr("width","25%")
-				.attr("align","left");
-	  var thead = nameTable.append('thead')
-	  var tbody = nameTable.append('tbody')
+			.attr("class","ui celled table")
+			.attr("width","25%")
+			.attr("align","left");
+var thead = nameTable.append('thead')
+var tbody = nameTable.append('tbody')
 
-  thead.append('tr')
-	  .selectAll('th')
-      .remove()
-      .exit()
-	    .data(columns)
-	    .enter()
-	  .append('th')
-	    .text(function (d) { return d })
-      .on('click', sortingCols)
+var header =  thead.append('tr')
+     .selectAll('th')
+        .remove()
+        .exit()
+       .data(columns)
+       .enter()
+
+header.append('th')
+       .text(function (d) { return d })
+        .on('click', sortingCols)
 
    var rows = tbody.selectAll('tr')
+       .remove()
+       .exit()
        .data(nameSample)
        .enter()
        .append('tr')
 
    var cells = rows.selectAll('td')
+       .remove()
+       .exit()
        .data(function(row) {
        	return columns.map(function (column) {
        		return { column: column, value: row[column] }
@@ -191,40 +215,85 @@ checkActive()
      .append('td')
        .html(function (d) { return d.value})
 
-//function to define sorting
-function sortingCols(d){
-    thead.attr('class', 'thead')
-    if (sortAscending) {
-        rows.sort(function(a, b) {return d3.ascending(b[d], a[d]);  });
-        sortAscending = false;
-        this.className = 'aes';
-        }
-    else {
-        rows.sort(function(a, b) { return d3.descending(b[d], a[d]); });
-        sortAscending = true;
-        this.className = 'des';
-        }
-     };
+       //function to define sorting
+       function sortingCols(d){
+           thead.attr('class', 'thead')
+           if (sortAscending) {
+               rows.sort(function(a, b) {return d3.ascending(b[d], a[d]);  });
+               sortAscending = false;
+               this.className = 'aes';
+               }
+           else {
+               rows.sort(function(a, b) { return d3.descending(b[d], a[d]); });
+               sortAscending = true;
+               this.className = 'des';
+               }
+            };
 
 //switch to check/adjust for what's active.
 var checkActive = function(){
-  switch(true){
-    case active.includes("All Names"):
-      active = alphabet
-      break
-    case active.includes("A to M"):
-      active = alphabet.slice(0,13)
-      break
-    case active.includes("N to Z"):
-      active = alphabet.slice(14,26)
-      break
-    default:
-      active = active
-  }
+ switch(true){
+   case active.includes("All Names"):
+     active = alphabet
+     break
+   case active.includes("A to M"):
+     active = alphabet.slice(0,13)
+     break
+   case active.includes("N to Z"):
+     active = alphabet.slice(14,26)
+     break
+   default:
+     active = active
+ }
 }
 
 //this is the end of the load data function, FYI
 });
+
+//switch to check status of M/F button
+var morf = function(){
+
+  both = d3.select("#bothCheck")
+  female = d3.select("#femaleCheck")
+  male = d3.select("#maleCheck")
+  clicked = d3.select(this);
+  state   = +clicked.attr("state");
+
+  switch(true){
+    case d3.select(this).node() === male.node():
+      female.attr("state", 0)
+      female.attr("class", "ui toggle button")
+      both.attr("state", 0)
+      both.attr("class", "ui toggle button")
+      clicked.attr("class", "ui toggle button active")
+      state = 1
+      sex = ["FALSE"]
+      break;
+    case d3.select(this).node() === female.node():
+      male.attr("state", 0)
+      male.attr("class", "ui toggle button")
+      both.attr("state", 0)
+      both.attr("class", "ui toggle button")
+      clicked.attr("class", "ui toggle button active")
+      state = 1
+      sex = ["TRUE"]
+      break;
+    case d3.select(this).node() === both.node():
+      female.attr("state", 0)
+      female.attr("class", "ui toggle button")
+      male.attr("state", 0)
+      male.attr("class", "ui toggle button")
+      both.attr("state", 1)
+      both.attr("class", "ui toggle button active")
+      state = 1
+      sex = ["NO"]
+  }
+}
+
+//Define m/f buttons
+both = d3.select("#bothCheck").on("click", morf);
+female = d3.select("#femaleCheck").on("click", morf);
+male = d3.select("#maleCheck").on("click", morf);
 
 //Define function to modify the buttons
 var statechange = function(){

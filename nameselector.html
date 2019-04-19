@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Random Boy Names</title>
+        <title>Random Baby Names</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.1.4/semantic.min.css">
         <!-- <link rel="stylesheet" type="text/css" href="/stylesheets/main.css"> -->
@@ -32,24 +32,31 @@
     <body>
 
         <div class="ui menu" id="navbar">
-          <a class="item" href="/"><h3 id="site_title">Random Boy Name Generator</h3></a>
+          <a class="item" href="/"><h3 id="site_title">Random Baby Name Generator</h3></a>
         </div>
 
 <div class="ui container">
 <h3>Instructions:</h3>
 
-<div> <p>The following widget will draw 25 names at random from 103,989 names found in the U.S. Social Security Administration's database of all names registered in the United States from 1880 to 2016.
-  For our purposes, we're looking only at 39,220 names where the number of males registered with that name are greater than or equal to the number of females registered with that name. The names will be displayed by
-  name, followed by the aggregate number of males registered with that name, the aggregate number of females registered with that name, and the year that the most people were registered with that name.</p>
-  <p> To get a fresh batch of 25 names, click the "Refresh" button below. To filter by specific letters, select the desired letters and press refresh.</p>
+<div> <p>The following widget will draw 25 names at random from 103,989 names found in the U.S. Social Security Administration's database of all names registered in the United States from 1880 to 2016.</p>
+	<p> The names are aggregated by sex, with the year the most instances of a name was registered noted as "Peak Year." Some summary statistics: </p>
+	<ul><li> Total Names: 103,989 </li>
+		<li> Female Names: 64,769</li>
+		<li> Male Names: 39,220</li>
+		<li> Most Popular Names:</li>
+		<li><ul><li> Female - Mary (F = 4,120,692 | M = 0)</li>
+			<li> Male - James (F= 23,280 | M = 5,136,026)</li></ul></li>
+	</ul>
+			
+  <p> To get a fresh batch of 25 names, click the "Refresh" button below. To filter by specific sex (as defined by the 50% or more being one sex or another), select the desired gender and press refresh. To filter by specific letters, select the desired letters and press refresh. </p>
 
   <p><input id="newNames" type="button" class="ui toggle button" value="Refresh"></p>
 
 <table class="button table">
   <tr>
-    <td><p><input type="button" class="ui toggle button" id="maleCheck" value="Male:" state=0></input></p></td>
-    <td><p><input type="button" class="ui toggle button" id="femaleCheck" value="Female:" state=0></input></td>
-    <td><p><input type="button" class="ui toggle button active" id="bothCheck" value="Both:" state=1></input></td>
+    <td><p><input type="button" class="ui toggle button" id="maleCheck" value="Male" state=0></input></p></td>
+    <td><p><input type="button" class="ui toggle button" id="femaleCheck" value="Female" state=0></input></td>
+    <td><p><input type="button" class="ui toggle button active" id="bothCheck" value="Both" state=1></input></td>
   </tr>
 </table>
 

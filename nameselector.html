@@ -121,17 +121,20 @@ checkActive()
     d.Name = "<a href='https://www.babble.com/baby-names/baby-boy-names/meaning-of-"+d.Name+"/' target='_blank'>"+d.Name+"</a>"
   })
 
-      thead.append('tr')
-        .remove()
-        .exit()
-    	  .selectAll('th')
-        .remove()
-        .exit()
-    	    .data(columns)
-    	    .enter()
-    	  .append('th')
-    	    .text(function (d) { return d })
-          .on('click', sortingCols)
+  thead.selectAll('th')
+      .text(function (d) { return d })
+      .on('click', function(d){
+             if (sortAscending) {
+                 rows.sort(function(a, b) {return d3.ascending(b[d], a[d]);  });
+                 sortAscending = false;
+                 this.className = 'aes';
+                 }
+             else {
+                 rows.sort(function(a, b) { return d3.descending(b[d], a[d]); });
+                 sortAscending = true;
+                 this.className = 'des';
+                 }
+              });
 
       var rows = tbody.selectAll('tr')
           .remove()
